@@ -1,0 +1,28 @@
+{
+    "name": "casbin/easyswoole-permission",
+    "description": "An authorization library that supports access control models like ACL, RBAC, ABAC in EasySwoole.",
+    "license": "Apache-2.0",
+    "authors": [
+        {
+            "name": "yikang",
+            "email": "1115610574@qq.com"
+        }
+    ],
+    "require": {
+        "php": "^7.2",
+        "ext-swoole": ">=4.5",
+        "casbin/casbin": "^2.2",
+        "easyswoole/orm": "^1.4",
+        "easyswoole/easyswoole": "3.x"
+    },
+    "autoload": {
+        "psr-4": {
+            "EasySwoole\\Permission\\": "src/"
+            }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "EasySwoole\\Permission\\Tests\\": "tests/"
+            }
+    }
+}
