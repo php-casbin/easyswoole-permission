@@ -1,7 +1,7 @@
 <h1 align="center">easyswoole-permission</h1>
 
 <p align="center">
-    <strong>easyswoole-permission is an authorization library for the easyswoole framework.</strong>    
+  	<strong>easyswoole-permission 是一个专为 EasySwoole 打造的授权工具。</strong>
 </p>
 
 <p align="center">
@@ -22,45 +22,38 @@
     </a>
 </p>
 
-[Chinese Version](https://github.com/casbin/easyswoole-permission/blob/master/README_CN.md)
+该扩展是基于 [Casbin](https://github.com/php-casbin/php-casbin) 开发的，一个高效的开源访问控制框架，支持基于`ACL`，`RBAC`，`ABAC`等访问控制模型。
 
-It's based on [Casbin](https://github.com/php-casbin/php-casbin), an authorization library that supports access control models like `ACL`, `RBAC`, `ABAC`.
+在这之前，你需要了解 [Casbin](https://github.com/php-casbin/php-casbin) 的相关知识。
 
-All you need to learn to use `Casbin` first.
+- [安装](#安装)
+- [用法](#用法)
+  - [数据库设置](#数据库设置)
+  - [创建相应的数据表](#创建相应的数据表)
+  - [快速开始](#快速开始)
+  - [使用 Enfoecer Api](#使用-Enforcer-Api)
+- [感谢](#感谢)
+- [License](#License)
 
-* [Installation](#installation)
+## 安装
 
-* [Usage](#usage)
-
-  - [Database settings](#database-settings)
-  - [Create corresponding data table](#create-corresponding-data-table)
-
-  * [Quick start](#quick-start)
-  * [Using Enforcer Api](#using-enforcer-api)
-
-* [Thinks](#thinks)
-
-* [License](#license)
-
-## Installation
-
-Require this package in the `composer.json` of your easyswoole project. This will download the package.
+在你的 easyswoole 应用的 `composer.json` 文件中指定该扩展。当你执行下面的 composer 命令时，该扩展会被下载。
 
 ```shell
 $ composer require
 ```
 
-Or in the root directory of your easyswoole application, you can use the following composer command to install this package directly .
+或者，在你 easyswoole 应用的根目录（ `composer.json` 文件所在的目录）下，使用 composer 命令直接安装该扩展。
 
 ```shell
 $ composer require casbin/easyswoole-permission:dev-master
 ```
 
-## Usage
+## 用法
 
-### Database settings
+### 数据库设置
 
-add mysql configuration to `dev.php`:
+在 `dev.php` 文件中添加关于 mysql 的设置：
 ```php
 /*################ MYSQL CONFIG ##################*/
 
@@ -75,7 +68,7 @@ add mysql configuration to `dev.php`:
 ]
 ```
 
-add mysql configuration to `EasySwooleEvent.php`:
+然后在 `EasySwooleEvent.php` 文件中指定该设置：
 
 ```php
 use EasySwoole\ORM\Db\Connection;
@@ -89,11 +82,11 @@ public static function initialize()
 }
 ```
 
-### Create corresponding data table
+### 创建相应的数据表
 
-Before using it, you need to create a table named `casbin_rules` for Casbin to store the policy.
+在使用该扩展之前，你需要创建一个叫做 `casbin_rules` 的数据表，以便 Casbin 存储相应的策略。
 
-Take mysql as an example:
+这里用 mysql 做示范:
 
 ```sql
 CREATE TABLE  if not exists  `casbin_rules` (
@@ -111,9 +104,9 @@ CREATE TABLE  if not exists  `casbin_rules` (
 ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4;
 ```
 
-### Quick start
+### 快速开始
 
-Then you can start like this:
+安装成功后，可以这样开始使用：
 
 ```php
 use EasySwoole\Permission\Casbin;
@@ -130,7 +123,7 @@ $casbin->addRoleForUser('eve', 'writer');
 $casbin->addPolicy('writer', 'articles', 'edit');
 ```
 
-You can check if a user has a permission like this:
+你可以检查一个用户是否拥有某个权限：
 
 ```php
 // to check if a user has permission
@@ -141,11 +134,11 @@ if ($casbin->enforce('eve', 'articles', 'edit')) {
 }
 ```
 
-### Using Enforcer Api
+### 使用 Enforcer Api
 
-It provides a very rich api to facilitate various operations on the Policy:
+它提供了非常丰富的api，以促进对 Policy 的各种操作：
 
-First create an instance of the enforcer class, and the following operations are based on this instance:
+首先创建enforcer类的实例，后面的操作都是基于该实例进行的：
 
 ```php
 $config = new Config();
@@ -153,43 +146,43 @@ $casbin = new Casbin($config);
 $enforcer = $casbin->enforcer();
 ```
 
-Gets all roles:
+获取所有的角色：
 
 ```php
 $enforcer->getAllRoles(); // ['writer', 'reader']
 ```
 
-Gets all the authorization rules in the policy.:
+获取所有的角色的授权规则：
 
 ```php
 $enforcer->getPolicy();
 ```
 
-Gets the roles that a user has.
+获取某个用户的所有角色：
 
 ```php
 $enforcer->getRolesForUser('eve'); // ['writer']
 ```
 
-Gets the users that has a role.
+获取担任某个角色的所有用户：
 
 ```php
 $enforcer->getUsersForRole('writer'); // ['eve']
 ```
 
-Determines whether a user has a role.
+检查某个用户是否拥有某几个（某个）角色：
 
 ```php
 $enforcer->hasRoleForUser('eve', 'writer'); // true or false
 ```
 
-Adds a role for a user.
+为用户添加角色：
 
 ```php
 $enforcer->addRoleForUser('eve', 'writer');
 ```
 
-Adds a permission for a user or role.
+给某个用户或角色赋予权限：
 
 ```php
 // to user
@@ -198,37 +191,37 @@ $enforcer->addPermissionForUser('eve', 'articles', 'read');
 $enforcer->addPermissionForUser('writer', 'articles','edit');
 ```
 
-Deletes a role for a user.
+删除用户的角色：
 
 ```php
 $enforcer->deleteRoleForUser('eve', 'writer');
 ```
 
-Deletes all roles for a user.
+删除某个用户的所有角色：
 
 ```php
 $enforcer->deleteRolesForUser('eve');
 ```
 
-Deletes a role.
+删除单个角色：
 
 ```php
 $enforcer->deleteRole('writer');
 ```
 
-Deletes a permission.
+删除单个权限：
 
 ```php
 $enforcer->deletePermission('articles', 'read'); // returns false if the permission does not exist (aka not affected).
 ```
 
-Deletes a permission for a user or role.
+删除某个用户或角色的权限：
 
 ```php
 $enforcer->deletePermissionForUser('eve', 'articles', 'read');
 ```
 
-Deletes permissions for a user or role.
+删除某个用户或角色的所有权限：
 
 ```php
 // to user
@@ -237,24 +230,25 @@ $enforcer->deletePermissionsForUser('eve');
 $enforcer->deletePermissionsForUser('writer');
 ```
 
-Gets permissions for a user or role.
+获取指定用户或角色的所有权限：
 
 ```php
 $enforcer->getPermissionsForUser('eve'); // return array
 ```
 
-Determines whether a user has a permission.
+决定某个用户是否拥有指定的权限
 
 ```php
 $enforcer->hasPermissionForUser('eve', 'articles', 'read');  // true or false
 ```
 
-See [Casbin API](https://casbin.org/docs/en/management-api) for more APIs.
+参考 [Casbin API](https://casbin.org/docs/en/management-api) 来查找更多 API
 
-## Thinks
+## 感谢
 
-[Casbin](https://github.com/php-casbin/php-casbin) in Easyswoole. You can find the full documentation of Casbin [on the website](https://casbin.org/).
+[Casbin](https://github.com/php-casbin/php-casbin)，你可以在其 [官网](https://casbin.org/) 上查看全部文档。
 
 ## License
 
 This project is licensed under the [Apache 2.0 license](LICENSE).
+
