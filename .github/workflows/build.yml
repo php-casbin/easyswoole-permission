@@ -15,7 +15,7 @@ jobs:
         image: mysql:5.7
         env:
           MYSQL_ALLOW_EMPTY_PASSWORD: yes
-          MYSQL_DATABASE: easyswoole-permission
+          MYSQL_DATABASE: easyswoole_permission
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping" --health-interval=10s --health-timeout=5s --health-retries=3
@@ -59,6 +59,23 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+
+      - name: create casbin_rules table
+        run: |
+          sudo apt-get install -y mysql-client
+          mysql --host 127.0.0.1 --port 3306 -u root -p -e "USE easyswoole_permission; CREATE TABLE  if not exists  casbin_rules (
+            id BigInt(20) unsigned NOT NULL AUTO_INCREMENT,
+            ptype varchar(255) DEFAULT NULL,
+            v0 varchar(255) DEFAULT NULL,
+            v1 varchar(255) DEFAULT NULL,
+            v2 varchar(255) DEFAULT NULL,
+            v3 varchar(255) DEFAULT NULL,
+            v4 varchar(255) DEFAULT NULL,
+            v5 varchar(255) DEFAULT NULL,
+            create_time timestamp NULL DEFAULT NULL,
+            update_time timestamp NULL DEFAULT NULL,
+            PRIMARY KEY (id)
+            ) ENGINE=InnoDB  DEFAULT CHARSET=utf8mb4"
 
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
