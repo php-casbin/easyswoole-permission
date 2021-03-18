@@ -9,10 +9,6 @@ use EasySwoole\Permission\Casbin;
 use EasySwoole\Permission\Config;
 use EasySwoole\ORM\Db\Connection;
 use EasySwoole\EasySwoole\Config as ESConfig;
-use EasySwoole\DDL\Blueprint\Create\Table as CreateTable;
-use EasySwoole\DDL\DDLBuilder;
-use EasySwoole\DDL\Enum\Character;
-use EasySwoole\DDL\Enum\Engine;
 
 class DatabaseAdapterTest extends TestCase
 {
@@ -31,7 +27,6 @@ class DatabaseAdapterTest extends TestCase
         $this->initConfig();
         $config = new Config();
         $casbin = new Casbin($config);
-        $this->initTable();
         $this->initDb();
         return $casbin->enforcer();
     }
@@ -45,30 +40,13 @@ class DatabaseAdapterTest extends TestCase
             'port'          => 3306,
             'user'          => 'root',
             'password'      => '',
-            'database'      => 'easyswoole',
+            'database'      => 'easyswoole_permission',
             'timeout'       => 5,
             'charset'       => 'utf8mb4',
         ];
         $instance->load($conf);
         $config = new \EasySwoole\ORM\Db\Config(ESConfig::getInstance()->getConf('MYSQL'));
         DbManager::getInstance()->addConnection(new Connection($config));
-    }
-
-    public function initTable()
-    {
-        DDLBuilder::create('casbin_rules', function (CreateTable $table) {
-            $table->setIfNotExists()->setTableComment('rule table of casbin');
-            $table->setTableCharset(Character::UTF8MB4_GENERAL_CI);
-            $table->setTableEngine(Engine::MYISAM);
-            $table->int('id')->setIsUnsigned()->setIsAutoIncrement()->setIsPrimaryKey();
-            $table->varchar('ptype', 255);
-            $table->varchar('v0', 255);
-            $table->varchar('v1', 255);
-            $table->varchar('v2', 255);
-            $table->varchar('v3', 255);
-            $table->varchar('v4', 255);
-            $table->varchar('v5', 255);
-        });
     }
 
     public function testRemovePolicy()

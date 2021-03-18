@@ -35,7 +35,7 @@ return [
         'port'          => 3306,
         'user'          => 'root',
         'password'      => '',
-        'database'      => 'easyswoole',
+        'database'      => 'easyswoole_permission',
         'timeout'       => 5,
         'charset'       => 'utf8mb4',
     ]
