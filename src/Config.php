@@ -38,6 +38,11 @@ class Config
     protected $log_enable = false;
 
     /**
+     * @var string
+     */
+    protected $logger_class = 'EasySwoole\Permission\Logger';
+
+    /**
      * @return string
      */
     public function getModelConfigType(): string
@@ -115,5 +120,15 @@ class Config
     public function setLogEnable(bool $log_enable): void
     {
         $this->log_enable = $log_enable;
+    }
+
+    /**
+     * Get the logger class
+     *
+     * @return string
+     */
+    public function getLoggerClass()
+    {
+        return $this->logger_class;
     }
 }
