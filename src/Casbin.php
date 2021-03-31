@@ -8,6 +8,7 @@ use Casbin\Enforcer;
 use Casbin\Model\Model;
 use Casbin\Persist\Adapter;
 use EasySwoole\Permission\Adapters\DatabaseAdapter;
+use Casbin\Log\Log;
 
 /**
  * Class Casbin
@@ -117,6 +118,13 @@ class Casbin
 
         if (!$config->getAdapter() instanceof Adapter) {
             $this->adapter = new DatabaseAdapter();
+        }
+
+        if ($logger = $this->config->getLoggerClass() ?? 'EasySwoole\Permission\Logger') {
+            if (class_exists($logger)) {
+                $logger = $logger::getInstance();
+            }
+            Log::setLogger($logger);
         }
 
         $this->model = new Model();
