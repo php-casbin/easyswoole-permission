@@ -116,15 +116,15 @@ class Casbin
 
         $this->config = $config;
 
-        if (!$config->getAdapter() instanceof Adapter) {
-            $this->adapter = new DatabaseAdapter();
-        }
+        $this->adapter = $config->getAdapter() ?? new DatabaseAdapter();
 
-        if ($logger = $this->config->getLoggerClass() ?? 'EasySwoole\Permission\Logger') {
-            if (class_exists($logger)) {
-                $logger = $logger::getInstance();
+        if ($loggerClass = $this->config->getLoggerClass()) {
+            $refClass = new \ReflectionClass($loggerClass);
+            if ($refClass->isSubclassOf(\Casbin\Log\Logger::class)) {
+                /** @var \Casbin\Log\Logger $logger */
+                $logger = $refClass->newInstance();
+                Log::setLogger($logger);
             }
-            Log::setLogger($logger);
         }
 
         $this->model = new Model();
