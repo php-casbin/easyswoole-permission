@@ -108,4 +108,39 @@ class DatabaseAdapterTest extends TestCase
         $adapter->savePolicy($model);
         $this->assertTrue($e->enforce('alice', 'data4', 'read'));
     }
+
+    public function testAddPolicies()
+    {
+        $policies = [
+            ['u1', 'd1', 'read'],
+            ['u2', 'd2', 'read'],
+            ['u3', 'd3', 'read'],
+        ];
+        $e = $this->getEnforcer();
+        $e->clearPolicy();
+        $this->assertEquals([], $e->getPolicy());
+        $e->addPolicies($policies);
+        $this->assertEquals($policies, $e->getPolicy());
+    }
+
+    public function testRemovePolicies()
+    {
+        $e = $this->getEnforcer();
+        $this->assertEquals([
+            ['alice', 'data1', 'read'],
+            ['bob', 'data2', 'write'],
+            ['data2_admin', 'data2', 'read'],
+            ['data2_admin', 'data2', 'write'],
+        ], $e->getPolicy());
+
+        $e->removePolicies([
+            ['data2_admin', 'data2', 'read'],
+            ['data2_admin', 'data2', 'write'],
+        ]);
+
+        $this->assertEquals([
+            ['alice', 'data1', 'read'],
+            ['bob', 'data2', 'write']
+        ], $e->getPolicy());
+    }
 }
