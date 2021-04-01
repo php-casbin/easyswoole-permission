@@ -116,9 +116,7 @@ class Casbin
 
         $this->config = $config;
 
-        if (!$config->getAdapter() instanceof Adapter) {
-            $this->adapter = new DatabaseAdapter();
-        }
+        $this->adapter = $config->getAdapter() ?? new DatabaseAdapter();
 
         if ($logger = $this->config->getLoggerClass() ?? 'EasySwoole\Permission\Logger') {
             if (class_exists($logger)) {
