@@ -11,8 +11,9 @@ use EasySwoole\ORM\Collection\Collection;
 use EasySwoole\ORM\Exception\Exception;
 use EasySwoole\Permission\Model\RulesModel;
 use Throwable;
+use Casbin\Persist\BatchAdapter;
 
-class DatabaseAdapter implements Adapter
+class DatabaseAdapter implements Adapter, BatchAdapter
 {
     use AdapterHelper;
 
@@ -144,5 +145,54 @@ class DatabaseAdapter implements Adapter
         }
 
         $instance->destroy();
+    }
+
+    /**
+     * adds a policy rules to the storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     */
+    public function addPolicies(string $sec, string $ptype, array $rules): void
+    {
+        $cols = [];
+
+        foreach($rules as $rule) {
+            $temp = [];
+            $temp['ptype'] = $ptype;
+            foreach ($rule as $key => $value) {
+                $temp['v'.strval($key)] = $value;
+            }
+            $cols[] = $temp;
+        }
+
+        RulesModel::create()->saveAll($cols);
+    }
+
+    /**
+     * removes policy rules from the storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $rules
+     */
+    public function removePolicies(string $sec, string $ptype, array $rules): void
+    {
+        $ids = [];
+        
+        foreach($rules as $rule) {
+            $where = [];
+            $where['ptype'] = $ptype;
+            foreach ($rule as $key => $value) {
+                $where['v'.strval($key)] = $value;
+            }
+            $ret = RulesModel::create()->get($where);
+            $ret && $ids[] = $ret->id;
+        }
+
+        RulesModel::create()->destroy($ids);
     }
 }
