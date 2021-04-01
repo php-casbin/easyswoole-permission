@@ -40,7 +40,7 @@ class Config
     /**
      * @var string
      */
-    protected $logger_class = 'EasySwoole\Permission\Logger';
+    protected $logger_class = Logger::class;
 
     /**
      * @return string
