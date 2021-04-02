@@ -9,6 +9,8 @@ use EasySwoole\Permission\Casbin;
 use EasySwoole\Permission\Config;
 use EasySwoole\ORM\Db\Connection;
 use EasySwoole\EasySwoole\Config as ESConfig;
+use Casbin\Exceptions\InvalidFilterTypeException;
+use Casbin\Persist\Adapters\Filter;
 
 class DatabaseAdapterTest extends TestCase
 {
@@ -141,6 +143,50 @@ class DatabaseAdapterTest extends TestCase
         $this->assertEquals([
             ['alice', 'data1', 'read'],
             ['bob', 'data2', 'write']
+        ], $e->getPolicy());
+    }
+
+    public function testLoadFilteredPolicy()
+    {
+        $e = $this->getEnforcer();
+        $e->clearPolicy();
+        $this->initConfig();
+        $adapter = $e->getAdapter();
+        $adapter->setFiltered(true);
+        $this->assertEquals([], $e->getPolicy());
+
+        // invalid filter type
+        try {
+            $filter = ['alice', 'data1', 'read'];
+            $e->loadFilteredPolicy($filter);
+            $exception = InvalidFilterTypeException::class;
+            $this->fail("Expected exception $exception not thrown");
+        } catch (InvalidFilterTypeException $exception) {
+            $this->assertEquals("invalid filter type", $exception->getMessage());
+        }
+
+        // string
+        $filter = "v0 = bob";
+        $e->loadFilteredPolicy($filter);
+        $this->assertEquals([
+            ['bob', 'data2', 'write']
+        ], $e->getPolicy());
+
+        // Filter
+        $filter = new Filter(['v2'], ['read']);
+        $e->loadFilteredPolicy($filter);
+        $this->assertEquals([
+            ['alice', 'data1', 'read'],
+            ['data2_admin', 'data2', 'read'],
+        ], $e->getPolicy());
+
+        // Closure
+        $e->loadFilteredPolicy(function ($query) {
+            $query->where('v1', 'data1');
+        });
+
+        $this->assertEquals([
+            ['alice', 'data1', 'read'],
         ], $e->getPolicy());
     }
 }

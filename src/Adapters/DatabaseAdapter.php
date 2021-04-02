@@ -12,10 +12,18 @@ use EasySwoole\ORM\Exception\Exception;
 use EasySwoole\Permission\Model\RulesModel;
 use Throwable;
 use Casbin\Persist\BatchAdapter;
+use Casbin\Persist\FilteredAdapter;
+use Casbin\Persist\Adapters\Filter;
+use Casbin\Exceptions\InvalidFilterTypeException;
 
-class DatabaseAdapter implements Adapter, BatchAdapter
+class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter
 {
     use AdapterHelper;
+
+    /**
+     * @var bool
+     */
+    private $filtered = false;
 
     /**
      * savePolicyLine function.
@@ -182,7 +190,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter
     public function removePolicies(string $sec, string $ptype, array $rules): void
     {
         $ids = [];
-        
+
         foreach($rules as $rule) {
             $where = [];
             $where['ptype'] = $ptype;
@@ -194,5 +202,63 @@ class DatabaseAdapter implements Adapter, BatchAdapter
         }
 
         RulesModel::create()->destroy($ids);
+    }
+
+    /**
+     * loads only policy rules that match the filter.
+     *
+     * @param Model $model
+     * @param mixed $filter
+     */
+    public function loadFilteredPolicy(Model $model, $filter): void
+    {
+        $instance = RulesModel::create();
+
+        if (is_string($filter)) {
+            $filter = str_replace(' ', '', $filter);
+            $filter = explode('=', $filter);
+            $instance->where($filter[0], $filter[1]);
+        } else if ($filter instanceof Filter) {
+            foreach($filter->p as $k => $v) {
+                $where[$v] = $filter->g[$k];
+                $instance->where($v, $filter->g[$k]);
+            }
+        } else if ($filter instanceof \Closure) {
+            $instance->where($filter);
+        } else {
+            throw new InvalidFilterTypeException('invalid filter type');
+        }
+        $rows = $instance->all();
+        //var_dump($rows);
+        foreach ($rows as $row) {
+            $row = $row->hidden(['create_time','update_time', 'id'])->toArray();
+            $row = array_filter($row, function($value) { return !is_null($value) && $value !== ''; });
+            //var_dump($row);
+            $line = implode(', ', array_filter($row, function ($val) {
+                return '' != $val && !is_null($val);
+            }));
+            $this->loadPolicyLine(trim($line), $model);
+        }
+        $this->setFiltered(true);
+    }
+
+    /**
+     * Returns true if the loaded policy has been filtered.
+     *
+     * @return bool
+     */
+    public function isFiltered(): bool
+    {
+        return $this->filtered;
+    }
+
+    /**
+     * Sets filtered parameter.
+     *
+     * @param bool $filtered
+     */
+    public function setFiltered(bool $filtered): void
+    {
+        $this->filtered = $filtered;
     }
 }
