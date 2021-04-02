@@ -5,6 +5,7 @@ namespace EasySwoole\Permission\Tests;
 use EasySwoole\ORM\Db\Connection;
 use EasySwoole\ORM\DbManager;
 use EasySwoole\Permission\Enforcer;
+use EasySwoole\Permission\Model\RulesModel;
 use PHPUnit\Framework\TestCase;
 
 class EnforcerTest extends TestCase

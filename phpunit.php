@@ -1,5 +1,6 @@
 <?php
 
+
 defined("MYSQL_HOST") ?: define('MYSQL_HOST', '127.0.0.1');
 defined("MYSQL_PORT") ?: define('MYSQL_PORT', 3306);
 defined("MYSQL_USER") ?: define('MYSQL_USER', 'root');

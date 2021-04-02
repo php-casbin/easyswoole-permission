@@ -14,6 +14,7 @@ use Casbin\Persist\Adapters\Filter;
 class DatabaseAdapterTest extends TestCase
 {
 
+
     public function setUp():void
     {
         $conf  = [
