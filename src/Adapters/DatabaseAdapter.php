@@ -15,8 +15,9 @@ use Casbin\Persist\BatchAdapter;
 use Casbin\Persist\FilteredAdapter;
 use Casbin\Persist\Adapters\Filter;
 use Casbin\Exceptions\InvalidFilterTypeException;
+use Casbin\Persist\UpdatableAdapter;
 
-class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter
+class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, UpdatableAdapter
 {
     use AdapterHelper;
 
@@ -260,5 +261,33 @@ class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter
     public function setFiltered(bool $filtered): void
     {
         $this->filtered = $filtered;
+    }
+
+    /**
+     * Updates a policy rule from storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param string[] $oldRule
+     * @param string[] $newPolicy
+     */
+    public function updatePolicy(string $sec, string $ptype, array $oldRule, array $newPolicy): void
+    {
+        $instance = RulesModel::create();
+        $where = [];
+        $update = [];
+        $where['ptype'] = $ptype;
+
+        foreach ($oldRule as $key => $value) {
+            $where['v' . $key] = $value;
+        }
+
+        $instance = $instance->where($where)->get();
+        foreach ($newPolicy as $key => $value) {
+            $update['v' . $key] = $value;
+        }
+
+        $instance->update($update);
     }
 }
