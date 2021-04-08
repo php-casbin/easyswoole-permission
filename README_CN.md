@@ -40,13 +40,13 @@
 在你的 easyswoole 应用的 `composer.json` 文件中指定该扩展。当你执行下面的 composer 命令时，该扩展会被下载。
 
 ```shell
-$ composer require
+$ composer install
 ```
 
 或者，在你 easyswoole 应用的根目录（ `composer.json` 文件所在的目录）下，使用 composer 命令直接安装该扩展。
 
 ```shell
-$ composer require casbin/easyswoole-permission:dev-master
+$ composer require casbin/easyswoole-permission
 ```
 
 ## 用法
