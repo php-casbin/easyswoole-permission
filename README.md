@@ -47,13 +47,13 @@ All you need to learn to use `Casbin` first.
 Require this package in the `composer.json` of your easyswoole project. This will download the package.
 
 ```shell
-$ composer require
+$ composer install
 ```
 
 Or in the root directory of your easyswoole application, you can use the following composer command to install this package directly .
 
 ```shell
-$ composer require casbin/easyswoole-permission:dev-master
+$ composer require casbin/easyswoole-permission
 ```
 
 ## Usage
