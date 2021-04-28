@@ -38,5 +38,10 @@ return [
         'database'      => 'easyswoole_permission',
         'timeout'       => 5,
         'charset'       => 'utf8mb4',
+    ],
+    'Enforcer' => [
+        'model_config_type' => 'file',
+        'model_config_file_path' => __DIR__ . '/casbin-rbac-model.conf',
+        'log_enable' => true,
     ]
 ];
