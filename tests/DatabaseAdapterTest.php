@@ -8,12 +8,29 @@ use EasySwoole\Permission\Model\RulesModel;
 use EasySwoole\Permission\Casbin;
 use EasySwoole\Permission\Config;
 use EasySwoole\ORM\Db\Connection;
-use EasySwoole\EasySwoole\Config as ESConfig;
 use Casbin\Exceptions\InvalidFilterTypeException;
 use Casbin\Persist\Adapters\Filter;
 
 class DatabaseAdapterTest extends TestCase
 {
+
+
+    public function setUp():void
+    {
+        $conf  = [
+            'host'          => MYSQL_HOST,
+            'port'          => MYSQL_PORT,
+            'user'          => MYSQL_USER,
+            'password'      => MYSQL_PASSWORD,
+            'database'      => MYSQL_DATABASE,
+            'timeout'       => MYSQL_TIMEOUT,
+            'charset'       => MYSQL_CHARSET,
+        ];
+        $config = new \EasySwoole\ORM\Db\Config($conf);
+        DbManager::getInstance()->addConnection(new Connection($config));
+        parent::setUp();
+    }
+
     protected function initDb()
     {
         RulesModel::create()->destroy(null, true);
@@ -26,29 +43,10 @@ class DatabaseAdapterTest extends TestCase
 
     protected function getEnforcer()
     {
-        $this->initConfig();
         $config = new Config();
         $casbin = new Casbin($config);
         $this->initDb();
         return $casbin->enforcer();
-    }
-
-    protected function initConfig()
-    {
-        $instance = \EasySwoole\EasySwoole\Config::getInstance();
-        $conf = $instance->getConf();
-        $conf['MYSQL'] = [
-            'host'          => '127.0.0.1',
-            'port'          => 3306,
-            'user'          => 'root',
-            'password'      => '',
-            'database'      => 'easyswoole_permission',
-            'timeout'       => 5,
-            'charset'       => 'utf8mb4',
-        ];
-        $instance->load($conf);
-        $config = new \EasySwoole\ORM\Db\Config(ESConfig::getInstance()->getConf('MYSQL'));
-        DbManager::getInstance()->addConnection(new Connection($config));
     }
 
     public function testRemovePolicy()
@@ -150,7 +148,6 @@ class DatabaseAdapterTest extends TestCase
     {
         $e = $this->getEnforcer();
         $e->clearPolicy();
-        $this->initConfig();
         $adapter = $e->getAdapter();
         $adapter->setFiltered(true);
         $this->assertEquals([], $e->getPolicy());

@@ -20,7 +20,5 @@ class RulesModel extends AbstractModel
 {
   protected $tableName = 'casbin_rules';
 
-  protected $autoTimeStamp = 'datetime';
-
   protected $primaryKey = 'id';
 }

@@ -34,9 +34,14 @@ return [
         'host'          => '127.0.0.1',
         'port'          => 3306,
         'user'          => 'root',
-        'password'      => '',
-        'database'      => 'easyswoole_permission',
+        'password'      => 'root',
+        'database'      => 'test',
         'timeout'       => 5,
         'charset'       => 'utf8mb4',
+    ],
+    'Enforcer' => [
+        'model_config_type' => 'file',
+        'model_config_file_path' => __DIR__ . '/casbin-rbac-model.conf',
+        'log_enable' => true,
     ]
 ];

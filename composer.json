@@ -10,8 +10,8 @@
     ],
     "require": {
         "php": "^7.2",
-        "ext-swoole": ">=4.5",
-        "casbin/casbin": "~3.1",
+        "ext-swoole": ">=4.4",
+        "casbin/casbin": "~3.0",
         "easyswoole/orm": "^1.4",
         "easyswoole/easyswoole": "~3.3|~3.4"
     },

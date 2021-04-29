@@ -5,8 +5,10 @@ declare(strict_types=1);
 namespace EasySwoole\Permission;
 
 use Casbin\Persist\Adapter;
+use EasySwoole\Permission\Adapters\DatabaseAdapter;
+use EasySwoole\Spl\SplBean;
 
-class Config
+class Config extends SplBean
 {
     const CONFIG_TYPE_FILE = 'file';
 
@@ -95,7 +97,7 @@ class Config
      */
     public function getAdapter(): ?Adapter
     {
-        return $this->adapter;
+        return $this->adapter instanceof Adapter ? $this->adapter : new DatabaseAdapter();
     }
 
     /**

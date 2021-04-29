@@ -1,7 +1,5 @@
 <?php
 
-declare(strict_types=1);
-
 namespace EasySwoole\Permission\Adapters;
 
 use Casbin\Persist\AdapterHelper;
@@ -176,7 +174,6 @@ class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, Updatab
             }
             $cols[] = $temp;
         }
-
         RulesModel::create()->saveAll($cols);
     }
 
