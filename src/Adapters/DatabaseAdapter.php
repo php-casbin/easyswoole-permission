@@ -14,6 +14,7 @@ use Casbin\Persist\FilteredAdapter;
 use Casbin\Persist\Adapters\Filter;
 use Casbin\Exceptions\InvalidFilterTypeException;
 use Casbin\Persist\UpdatableAdapter;
+use EasySwoole\ORM\DbManager;
 
 class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, UpdatableAdapter
 {
@@ -23,6 +24,27 @@ class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, Updatab
      * @var bool
      */
     private $filtered = false;
+
+    /**
+     * Filter the rule.
+     *
+     * @param array $rule
+     *
+     * @return array
+     */
+    public function filterRule(array $rule): array
+    {
+        $rule = array_values($rule);
+
+        $i = count($rule) - 1;
+        for (; $i >= 0; $i--) {
+            if ($rule[$i] != '' && !is_null($rule[$i])) {
+                break;
+            }
+        }
+
+        return array_slice($rule, 0, $i + 1);
+    }
 
     /**
      * savePolicyLine function.
@@ -129,18 +151,17 @@ class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, Updatab
     }
 
     /**
-     * RemoveFilteredPolicy removes policy rules that match the filter from the storage.
-     * This is part of the Auto-Save feature.
-     *
      * @param string $sec
      * @param string $ptype
-     * @param int $fieldIndex
+     * @param int    $fieldIndex
      * @param string ...$fieldValues
+     * @return array
      * @throws Exception
      * @throws Throwable
      */
-    public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): void
+    public function _removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, ?string ...$fieldValues): array
     {
+        $removedRules = [];
         $instance = RulesModel::create()->where(['ptype' => $ptype]);
 
         foreach (range(0, 5) as $value) {
@@ -151,7 +172,37 @@ class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, Updatab
             }
         }
 
-        $instance->destroy();
+        $results = (clone $instance)->all();
+        if (!$results instanceof Collection) {
+            $results = new Collection($results);
+        }
+
+        $oldP = $results->hidden(['id', 'ptype', 'create_time', 'update_time'])->toArray(false, false);
+        foreach ($oldP as &$item) {
+            $item = $this->filterRule($item);
+            $removedRules[] = $item;
+        }
+
+        $instance->destroy(null, true);
+
+        return $removedRules;
+    }
+
+    /**
+     * RemoveFilteredPolicy removes policy rules that match the filter from the storage.
+     * This is part of the Auto-Save feature.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param int    $fieldIndex
+     * @param string ...$fieldValues
+     * @return void
+     * @throws Exception
+     * @throws Throwable
+     */
+    public function removeFilteredPolicy(string $sec, string $ptype, int $fieldIndex, string ...$fieldValues): void
+    {
+        $this->_removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
     }
 
     /**
@@ -227,7 +278,7 @@ class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, Updatab
             throw new InvalidFilterTypeException('invalid filter type');
         }
         $rows = $instance->all();
-        //var_dump($rows);
+
         foreach ($rows as $row) {
             $row = $row->hidden(['create_time','update_time', 'id'])->toArray();
             $row = array_filter($row, function($value) { return !is_null($value) && $value !== ''; });
@@ -286,5 +337,64 @@ class DatabaseAdapter implements Adapter, BatchAdapter, FilteredAdapter, Updatab
         }
 
         $instance->update($update);
+    }
+
+    /**
+     * UpdatePolicies updates some policy rules to storage, like db, redis.
+     *
+     * @param string     $sec
+     * @param string     $ptype
+     * @param string[][] $oldRules
+     * @param string[][] $newRules
+     *
+     * @return void
+     */
+    public function updatePolicies(string $sec, string $ptype, array $oldRules, array $newRules): void
+    {
+        try {
+            // start transaction
+            DbManager::getInstance()->startTransaction();
+
+            foreach ($oldRules as $i => $oldRule) {
+                $this->updatePolicy($sec, $ptype, $oldRule, $newRules[$i]);
+            }
+
+            // commit transaction
+            DbManager::getInstance()->commit();
+        } catch (\Throwable $e) {
+            // rollback transaction
+            DbManager::getInstance()->rollback();
+        }
+    }
+
+    /**
+     * UpdateFilteredPolicies deletes old rules and adds new rules.
+     *
+     * @param string $sec
+     * @param string $ptype
+     * @param array  $newPolicies
+     * @param int    $fieldIndex
+     * @param string ...$fieldValues
+     *
+     * @return array
+     */
+    public function updateFilteredPolicies(string $sec, string $ptype, array $newPolicies, int $fieldIndex, string ...$fieldValues): array
+    {
+        $oldRules = [];
+        try {
+            // start transaction
+            DbManager::getInstance()->startTransaction();
+
+            $oldRules = $this->_removeFilteredPolicy($sec, $ptype, $fieldIndex, ...$fieldValues);
+            $this->addPolicies($sec, $ptype, $newPolicies);
+
+            // commit transaction
+            DbManager::getInstance()->commit();
+        } catch (\Throwable $e) {
+            // rollback transaction
+            DbManager::getInstance()->rollback();
+        }
+
+        return $oldRules;
     }
 }
